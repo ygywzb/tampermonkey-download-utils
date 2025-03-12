@@ -1,3 +1,3 @@
-import { zipFiles } from "./utils/file";
+import { downloadAndZipSync } from './utils';
 
-export { zipFiles };
+export { downloadAndZipSync };

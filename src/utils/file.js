@@ -25,7 +25,7 @@ const getDataAndAdd = async (url, zip, gmCallback = null) => {
  */
 
 /** @type {DAZOptions}*/
-const dAndZDefaultOptions = {
+const DAZDefaultOptions = {
   zipName: 'archive',
   gmCallback: null,
   extention: 'zip',
@@ -38,7 +38,10 @@ const dAndZDefaultOptions = {
  */
 export const downloadAndZipSync = async (linkList, options = {}) => {
   debugger;
-  const { zipName, gmCallback, extention } = { ...defaultOptions, ...options };
+  const { zipName, gmCallback, extention } = {
+    ...DAZDefaultOptions,
+    ...options,
+  };
 
   console.debug('下载链接列表:', linkList);
   console.debug('压缩包名称:', zipName);

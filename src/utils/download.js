@@ -19,13 +19,17 @@
  * @returns {Promise<*>} 直接输出数据
  */
 const getDataByGM = async (gmCallback, url) => {
+  console.debug(`调用GM_XHR, URL:${url}`);
   const response = await gmCallback({
     method: 'get',
     url: url,
     responseType: 'blob',
   });
+  console.debug(`响应自${url}:`, response);
   if (response.status !== 200) {
-    throw new Error(`GM_XHR error! status: ${response.status}`);
+    const errMsg = `GM_XHR 相应错误! 响应码: ${response.status}`;
+    console.error(errMsg);
+    throw new Error(errMsg);
   }
   return response.response;
 };
@@ -35,9 +39,13 @@ const getDataByGM = async (gmCallback, url) => {
  * @returns {Blob} 二进制数据
  */
 const getDataByFetch = async (url) => {
+  console.debug(`调用fetch, URL:${url}`);
   const response = await fetch(url);
+  console.debug(`响应自${url}:`, response);
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    const errMsg = `fetch 响应码错误! 响应码: ${response.status}`;
+    console.error(errMsg);
+    throw new Error(errMsg);
   }
   const blob = await response.blob();
   return blob;

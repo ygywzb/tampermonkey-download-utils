@@ -30,6 +30,7 @@ export const downloadAndZipSync = async (
   gmCallback = null,
   extention = 'zip',
 ) => {
+  debugger;
   console.debug('下载链接列表:', linkList);
   console.debug('压缩包名称:', zipName);
   console.debug('使用的下载函数:', gmCallback ? 'GMCallback' : 'fetch');
@@ -48,7 +49,7 @@ export const downloadAndZipSync = async (
 
   let successNum = 0;
   let allNum = linkList.length;
-  linkList.forEach(async (url) => {
+  for (const url of linkList) {
     try {
       await getDataAndAdd(url, zip, gmCallback);
       successNum++;
@@ -57,7 +58,7 @@ export const downloadAndZipSync = async (
     } finally {
       console.info(`下载进度：${successNum}/${allNum}`);
     }
-  });
+  }
   console.info(`下载结束, 成功:${successNum}, 共:${allNum}`);
   console.info('压缩中');
   const content = await zip.generateAsync({ type: 'blob' });

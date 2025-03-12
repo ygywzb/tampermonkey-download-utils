@@ -11,13 +11,16 @@ module.exports = {
     globalObject: 'this',
   },
   plugins: [new ESLintPlugin()],
-  mode: 'production',
+  mode: 'development',
   devtool: 'source-map',
   module: {
     rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
+        // use: {
+        //   loader: 'babel-loader',
+        // },
       },
     ],
   },

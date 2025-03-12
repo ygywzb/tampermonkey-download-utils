@@ -18,19 +18,28 @@ const getDataAndAdd = async (url, zip, gmCallback = null) => {
 };
 
 /**
+ * @typedef {Object} DAZOptions
+ * @property {string} zipName - 压缩包名称
+ * @property {import("./download").GMCallback} gmCallback - 油猴下载函数，无则使用原生的fetch
+ * @property {string} extention - 压缩包拓展名
+ */
+
+/** @type {DAZOptions}*/
+const dAndZDefaultOptions = {
+  zipName: 'archive',
+  gmCallback: null,
+  extention: 'zip',
+};
+
+/**
  * 同步方式下载资源并整合至压缩包中
  * @param {string[]} linkList 下载链接列表
- * @param {string} zipName 压缩包名称
- * @param {import("./download").GMCallback} gmCallback 油猴下载函数，无则使用原生的fetch
- * @param {string} extention 压缩包拓展名
+ * @param {DAZOptions} [options] 其他可选参数
  */
-export const downloadAndZipSync = async (
-  linkList,
-  zipName = 'archive',
-  gmCallback = null,
-  extention = 'zip',
-) => {
+export const downloadAndZipSync = async (linkList, options = {}) => {
   debugger;
+  const { zipName, gmCallback, extention } = { ...defaultOptions, ...options };
+
   console.debug('下载链接列表:', linkList);
   console.debug('压缩包名称:', zipName);
   console.debug('使用的下载函数:', gmCallback ? 'GMCallback' : 'fetch');

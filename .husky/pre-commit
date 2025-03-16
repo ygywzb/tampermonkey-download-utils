@@ -12,3 +12,5 @@ fi
 
 echo "📦 Adding build files to commit..."
 git add dist/
+
+exit 1

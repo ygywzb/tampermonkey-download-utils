@@ -1,3 +1,7 @@
+import { toolsConfigManager } from '../config';
+
+const downloadConfig = toolsConfigManager.config.download;
+
 /**
  * GM_XHR成功返回的对象
  * @typedef GMResponse
@@ -57,7 +61,9 @@ const getDataByFetch = async (url) => {
  * @returns {Promise<*>} 二进制数据
  */
 export const getData = async (url, callback = null) => {
-  let tryNum = 3;
+  debugger;
+  let tryNum = downloadConfig.tryNum;
+  console.debug(`尝试次数：${tryNum}`);
   let res = null;
   let currentE = null;
   while (tryNum >= 0) {

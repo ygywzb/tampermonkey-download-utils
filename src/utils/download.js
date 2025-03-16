@@ -36,7 +36,7 @@ const getDataByGM = async (gmCallback, url) => {
 /**
  * 通过fetch获取二进制数据
  * @param {string} url 链接
- * @returns {Blob} 二进制数据
+ * @returns {Promise<Blob>} 二进制数据
  */
 const getDataByFetch = async (url) => {
   console.debug(`调用fetch, URL:${url}`);
@@ -54,11 +54,25 @@ const getDataByFetch = async (url) => {
  * 获取二进制数据，可选是否用GM，否则用原生fetch
  * @param {string} url 链接
  * @param {GMCallback} callback GM下载函数，一般为GM.xmlHttpRequest
- * @returns {*} 二进制数据
+ * @returns {Promise<*>} 二进制数据
  */
 export const getData = async (url, callback = null) => {
-  if (callback === null) {
-    return getDataByFetch(url);
+  let tryNum = 3;
+  let res = null;
+  let currentE = null;
+  while (tryNum >= 0) {
+    try {
+      if (callback === null) {
+        res = await getDataByFetch(url);
+      } else {
+        res = await getDataByGM(callback, url);
+      }
+      return res;
+    } catch (e) {
+      tryNum--;
+      currentE = e;
+      console.info(`下载${url}失败，重试（还剩${tryNum}次）`);
+    }
   }
-  return getDataByGM(callback, url);
+  throw currentE;
 };

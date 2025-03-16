@@ -132,7 +132,7 @@ const getData = async (url, callback = null) => {
     } catch (e) {
       tryNum--;
       currentE = e;
-      console.info(`下载${url}失败，重试（还剩${tryNum}次）`);
+      console.info(`下载失败，重试（还剩${tryNum}次）：${url}`);
     }
   }
   throw currentE;

@@ -356,7 +356,6 @@ const DAZDefaultOptions = {
  * @param {DAZOptions} [options] 其他可选参数
  */
 const downloadAndZipSync = async (linkList, options = {}) => {
-  debugger;
   const { zipName, gmCallback, extention } = {
     ...DAZDefaultOptions,
     ...options,
@@ -404,7 +403,6 @@ const downloadAndZipSync = async (linkList, options = {}) => {
  * @param {DAZOptions} [options] 其他可选参数
  */
 const downloadAndZipAsync = async (linkList, options = {}) => {
-  debugger;
   const { zipName, gmCallback, extention } = {
     ...DAZDefaultOptions,
     ...options,

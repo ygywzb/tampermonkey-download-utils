@@ -179,9 +179,9 @@ const defaultConfig = {
 const toolsConfigManager = {
   config: defaultConfig,
   load: () => {
-    const cfg = localStorage.getItem(_constants__WEBPACK_IMPORTED_MODULE_0__.CONFIG_KEY);
-    if (cfg !== null) {
-      const cfg = JSON.parse(cfg);
+    const cfgStr = localStorage.getItem(_constants__WEBPACK_IMPORTED_MODULE_0__.CONFIG_KEY);
+    if (cfgStr !== null) {
+      const cfg = JSON.parse(cfgStr);
       if (cfg.version !== _constants__WEBPACK_IMPORTED_MODULE_0__.CONFIG_VERSION) {
         toolsConfigManager.config = defaultConfig;
         console.warn('配置版本不匹配，将使用默认配置');

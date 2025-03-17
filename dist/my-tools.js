@@ -58,9 +58,11 @@ https://github.com/nodeca/pako/blob/master/LICENSE
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   CONFIG_KEY: () => (/* binding */ CONFIG_KEY),
+/* harmony export */   CONFIG_VERSION: () => (/* binding */ CONFIG_VERSION),
 /* harmony export */   MAX_CONCURRENT_DOWNLOADS: () => (/* binding */ MAX_CONCURRENT_DOWNLOADS)
 /* harmony export */ });
 // 存储配置对象的键
+const CONFIG_VERSION = '1.0.0';
 const CONFIG_KEY = 'tampermonkey-download-utils-config';
 const MAX_CONCURRENT_DOWNLOADS = 5;
 
@@ -145,6 +147,7 @@ __webpack_require__.r(__webpack_exports__);
 /**
  * 工具配置，包括所有配置
  * @typedef {Object} ToolsConfig
+ * @property {string} version
  * @property {import("./file").FileConfig} file
  * @property {import("./download").DownloadConfig} download
  */
@@ -154,6 +157,7 @@ __webpack_require__.r(__webpack_exports__);
  * @type ToolsConfig
  */
 const defaultConfig = {
+  version: _constants__WEBPACK_IMPORTED_MODULE_0__.CONFIG_VERSION,
   download: _download__WEBPACK_IMPORTED_MODULE_1__.defaultDownloadConfig,
   file: _file__WEBPACK_IMPORTED_MODULE_2__.defaultFileConfig,
 };
@@ -177,9 +181,15 @@ const toolsConfigManager = {
   load: () => {
     const cfg = localStorage.getItem(_constants__WEBPACK_IMPORTED_MODULE_0__.CONFIG_KEY);
     if (cfg !== null) {
-      toolsConfigManager.config = JSON.parse(cfg);
+      const cfg = JSON.parse(cfg);
+      if (cfg.version !== toolsConfigManager.config.version) {
+        toolsConfigManager.config = defaultConfig;
+        console.warn('配置版本不匹配，将使用默认配置');
+      }
+      toolsConfigManager.config = cfg;
       console.info('已载入本地配置:', toolsConfigManager.config);
     } else {
+      toolsConfigManager.config = defaultConfig;
       console.info('未发现本地配置，将使用默认配置');
     }
   },

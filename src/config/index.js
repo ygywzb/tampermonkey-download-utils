@@ -1,10 +1,11 @@
-import { CONFIG_KEY } from './constants';
+import { CONFIG_KEY, CONFIG_VERSION } from './constants';
 import { defaultDownloadConfig } from './download';
 import { defaultFileConfig } from './file';
 
 /**
  * 工具配置，包括所有配置
  * @typedef {Object} ToolsConfig
+ * @property {string} version
  * @property {import("./file").FileConfig} file
  * @property {import("./download").DownloadConfig} download
  */
@@ -14,6 +15,7 @@ import { defaultFileConfig } from './file';
  * @type ToolsConfig
  */
 const defaultConfig = {
+  version: CONFIG_VERSION,
   download: defaultDownloadConfig,
   file: defaultFileConfig,
 };
@@ -37,9 +39,15 @@ export const toolsConfigManager = {
   load: () => {
     const cfg = localStorage.getItem(CONFIG_KEY);
     if (cfg !== null) {
-      toolsConfigManager.config = JSON.parse(cfg);
+      const cfg = JSON.parse(cfg);
+      if (cfg.version !== toolsConfigManager.config.version) {
+        toolsConfigManager.config = defaultConfig;
+        console.warn('配置版本不匹配，将使用默认配置');
+      }
+      toolsConfigManager.config = cfg;
       console.info('已载入本地配置:', toolsConfigManager.config);
     } else {
+      toolsConfigManager.config = defaultConfig;
       console.info('未发现本地配置，将使用默认配置');
     }
   },

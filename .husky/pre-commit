@@ -1,0 +1,14 @@
+# 清空旧构建结果（按需启用）
+rm -rf dist/
+
+echo "🚀 Starting Webpack build..."
+npm run build
+
+# 检测是否生成目标文件（可选校验）
+if [ ! -d "dist" ]; then
+  echo "❌ Build failed: dist directory not found"
+  exit 1
+fi
+
+echo "📦 Adding build files to commit..."
+git add .

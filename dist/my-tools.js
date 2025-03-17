@@ -48,6 +48,145 @@ https://github.com/nodeca/pako/blob/master/LICENSE
 
 /***/ }),
 
+/***/ "./src/config/constants.js":
+/*!*********************************!*\
+  !*** ./src/config/constants.js ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   CONFIG_KEY: () => (/* binding */ CONFIG_KEY)
+/* harmony export */ });
+// 存储配置对象的键
+const CONFIG_KEY = 'tampermonkey-download-utils-config';
+
+
+/***/ }),
+
+/***/ "./src/config/download.js":
+/*!********************************!*\
+  !*** ./src/config/download.js ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   defaultDownloadConfig: () => (/* binding */ defaultDownloadConfig)
+/* harmony export */ });
+/**
+ * @typedef {Object} DownloadConfig
+ * @property {number} tryNum
+ */
+
+/**
+ * 默认的下载配置
+ * @type DownloadConfig
+ */
+const defaultDownloadConfig = {
+  tryNum: 3,
+};
+
+
+/***/ }),
+
+/***/ "./src/config/file.js":
+/*!****************************!*\
+  !*** ./src/config/file.js ***!
+  \****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   defaultFileConfig: () => (/* binding */ defaultFileConfig)
+/* harmony export */ });
+/**
+ * @typedef {Object} FileConfig
+ */
+
+/**
+ * 默认的下载配置
+ * @type FileConfig
+ */
+const defaultFileConfig = {};
+
+
+/***/ }),
+
+/***/ "./src/config/index.js":
+/*!*****************************!*\
+  !*** ./src/config/index.js ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   toolsConfigManager: () => (/* binding */ toolsConfigManager)
+/* harmony export */ });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./src/config/constants.js");
+/* harmony import */ var _download__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./download */ "./src/config/download.js");
+/* harmony import */ var _file__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./file */ "./src/config/file.js");
+
+
+
+
+/**
+ * 工具配置，包括所有配置
+ * @typedef {Object} ToolsConfig
+ * @property {import("./file").FileConfig} file
+ * @property {import("./download").DownloadConfig} download
+ */
+
+/**
+ * 工具默认配置，包括所有的默认配置
+ * @type ToolsConfig
+ */
+const defaultConfig = {
+  download: _download__WEBPACK_IMPORTED_MODULE_1__.defaultDownloadConfig,
+  file: _file__WEBPACK_IMPORTED_MODULE_2__.defaultFileConfig,
+};
+
+/**
+ * 配置管理器
+ * @typedef {Object} ConfigManager
+ * @property {ToolsConfig} config
+ * @property {function} load
+ * @property {function} save
+ * @property {function} reset
+ */
+
+/**
+ * 配置管理器，默认配置，使用localstorage配置持久化
+ * @type ConfigManager
+ */
+const toolsConfigManager = {
+  config: defaultConfig,
+  load: () => {
+    const cfg = localStorage.getItem(_constants__WEBPACK_IMPORTED_MODULE_0__.CONFIG_KEY);
+    if (cfg !== null) {
+      toolsConfigManager.config = JSON.parse(cfg);
+      console.info('已载入本地配置:', toolsConfigManager.config);
+    } else {
+      console.info('未发现本地配置，将使用默认配置');
+    }
+  },
+  save: () => {
+    localStorage.setItem(_constants__WEBPACK_IMPORTED_MODULE_0__.CONFIG_KEY, JSON.stringify(toolsConfigManager.config));
+    console.info('已保存当前配置到本地:', toolsConfigManager.config);
+  },
+  reset: () => {
+    toolsConfigManager.config = defaultConfig;
+    console.info('已恢复默认配置');
+  },
+};
+
+
+/***/ }),
+
 /***/ "./src/utils/download.js":
 /*!*******************************!*\
   !*** ./src/utils/download.js ***!
@@ -59,6 +198,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   getData: () => (/* binding */ getData)
 /* harmony export */ });
+/* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config */ "./src/config/index.js");
+
+
 /**
  * GM_XHR成功返回的对象
  * @typedef GMResponse
@@ -97,7 +239,7 @@ const getDataByGM = async (gmCallback, url) => {
 /**
  * 通过fetch获取二进制数据
  * @param {string} url 链接
- * @returns {Blob} 二进制数据
+ * @returns {Promise<Blob>} 二进制数据
  */
 const getDataByFetch = async (url) => {
   console.debug(`调用fetch, URL:${url}`);
@@ -115,13 +257,30 @@ const getDataByFetch = async (url) => {
  * 获取二进制数据，可选是否用GM，否则用原生fetch
  * @param {string} url 链接
  * @param {GMCallback} callback GM下载函数，一般为GM.xmlHttpRequest
- * @returns {*} 二进制数据
+ * @returns {Promise<*>} 二进制数据
  */
 const getData = async (url, callback = null) => {
-  if (callback === null) {
-    return getDataByFetch(url);
+  debugger;
+  const downloadConfig = _config__WEBPACK_IMPORTED_MODULE_0__.toolsConfigManager.config.download;
+  let tryNum = downloadConfig.tryNum;
+  console.debug(`尝试次数：${tryNum}`);
+  let res = null;
+  let currentE = null;
+  while (tryNum >= 0) {
+    try {
+      if (callback === null) {
+        res = await getDataByFetch(url);
+      } else {
+        res = await getDataByGM(callback, url);
+      }
+      return res;
+    } catch (e) {
+      tryNum--;
+      currentE = e;
+      console.info(`下载失败，重试（还剩${tryNum}次）：${url}`);
+    }
   }
-  return getDataByGM(callback, url);
+  throw currentE;
 };
 
 
@@ -335,9 +494,12 @@ var __webpack_exports__ = {};
   \**********************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   downloadAndZipSync: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_0__.downloadAndZipSync)
+/* harmony export */   downloadAndZipSync: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_0__.downloadAndZipSync),
+/* harmony export */   toolsConfigManager: () => (/* reexport safe */ _config__WEBPACK_IMPORTED_MODULE_1__.toolsConfigManager)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils/index.js");
+/* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./config */ "./src/config/index.js");
+
 
 
 

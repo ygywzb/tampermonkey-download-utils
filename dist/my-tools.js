@@ -57,10 +57,12 @@ https://github.com/nodeca/pako/blob/master/LICENSE
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   CONFIG_KEY: () => (/* binding */ CONFIG_KEY)
+/* harmony export */   CONFIG_KEY: () => (/* binding */ CONFIG_KEY),
+/* harmony export */   MAX_CONCURRENT_DOWNLOADS: () => (/* binding */ MAX_CONCURRENT_DOWNLOADS)
 /* harmony export */ });
 // 存储配置对象的键
 const CONFIG_KEY = 'tampermonkey-download-utils-config';
+const MAX_CONCURRENT_DOWNLOADS = 5;
 
 
 /***/ }),
@@ -103,15 +105,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   defaultFileConfig: () => (/* binding */ defaultFileConfig)
 /* harmony export */ });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./src/config/constants.js");
 /**
  * @typedef {Object} FileConfig
+ * @property {number} maxDownload
  */
+
+
 
 /**
  * 默认的下载配置
  * @type FileConfig
  */
-const defaultFileConfig = {};
+const defaultFileConfig = {
+  maxDownload: _constants__WEBPACK_IMPORTED_MODULE_0__.MAX_CONCURRENT_DOWNLOADS,
+};
 
 
 /***/ }),
@@ -295,6 +303,7 @@ const getData = async (url, callback = null) => {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   downloadAndZipAsync: () => (/* binding */ downloadAndZipAsync),
 /* harmony export */   downloadAndZipSync: () => (/* binding */ downloadAndZipSync)
 /* harmony export */ });
 /* harmony import */ var jszip__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! jszip */ "./node_modules/jszip/dist/jszip.min.js");
@@ -302,6 +311,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _download__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./download */ "./src/utils/download.js");
 /* harmony import */ var file_saver__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! file-saver */ "./node_modules/file-saver/dist/FileSaver.min.js");
 /* harmony import */ var file_saver__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(file_saver__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../config */ "./src/config/index.js");
+
 
 
 
@@ -383,6 +394,75 @@ const downloadAndZipSync = async (linkList, options = {}) => {
   console.info(`文件已保存为: ${zipName}.${extention}`);
 };
 
+/**
+ * 异步方式下载资源并整合至压缩包中
+ * @param {string[]} linkList 下载链接列表
+ * @param {DAZOptions} [options] 其他可选参数
+ */
+const downloadAndZipAsync = async (linkList, options = {}) => {
+  debugger;
+  const { zipName, gmCallback, extention } = {
+    ...DAZDefaultOptions,
+    ...options,
+  };
+  const maxDownload = _config__WEBPACK_IMPORTED_MODULE_3__.toolsConfigManager.config.file.maxDownload;
+
+  console.debug('下载链接列表:', linkList);
+  console.debug('压缩包名称:', zipName);
+  console.debug('使用的下载函数:', gmCallback ? 'GMCallback' : 'fetch');
+  console.debug('压缩包拓展名:', extention);
+  console.debug('最大下载数:', maxDownload);
+
+  if (linkList.length <= 0) {
+    console.warn('下载列表为空！');
+    return;
+  }
+  console.info('将以异步方式下载');
+  console.debug('开始创建新的zip对象');
+  const zip = new (jszip__WEBPACK_IMPORTED_MODULE_0___default())();
+
+  const incrementSuccessNum = async () => {
+    successNum++;
+  };
+
+  const allNum = linkList.length;
+  let successNum = 0;
+  const downloadQueue = [];
+  for (const url of linkList) {
+    const downloadTask = async () => {
+      try {
+        await getDataAndAdd(url, zip, gmCallback);
+        await incrementSuccessNum();
+      } catch (error) {
+        console.error(`下载失败: ${url}`, error);
+      } finally {
+        console.info(`下载进度：${successNum}/${allNum}`);
+      }
+    };
+
+    downloadQueue.push(downloadTask);
+
+    if (downloadQueue.length >= maxDownload) {
+      console.debug('下载队列开始，异步下载个数:', downloadQueue.length);
+      await Promise.all(downloadQueue.map((task) => task()));
+      downloadQueue.length = 0; // 清空队列
+    }
+  }
+
+  // 处理剩余的下载任务
+  if (downloadQueue.length > 0) {
+    console.debug('下载队列开始，异步下载个数:', downloadQueue.length);
+    await Promise.all(downloadQueue.map((task) => task()));
+  }
+
+  console.info(`下载结束, 成功:${successNum}, 共:${allNum}`);
+  console.info('压缩中');
+  const content = await zip.generateAsync({ type: 'blob' });
+  console.info('压缩包生成完成');
+  (0,file_saver__WEBPACK_IMPORTED_MODULE_2__.saveAs)(content, ''.concat(zipName, '.', extention));
+  console.info(`文件已保存为: ${zipName}.${extention}`);
+};
+
 
 /***/ }),
 
@@ -395,6 +475,7 @@ const downloadAndZipSync = async (linkList, options = {}) => {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   downloadAndZipAsync: () => (/* reexport safe */ _file__WEBPACK_IMPORTED_MODULE_0__.downloadAndZipAsync),
 /* harmony export */   downloadAndZipSync: () => (/* reexport safe */ _file__WEBPACK_IMPORTED_MODULE_0__.downloadAndZipSync)
 /* harmony export */ });
 /* harmony import */ var _file__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./file */ "./src/utils/file.js");
@@ -494,6 +575,7 @@ var __webpack_exports__ = {};
   \**********************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   downloadAndZipAsync: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_0__.downloadAndZipAsync),
 /* harmony export */   downloadAndZipSync: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_0__.downloadAndZipSync),
 /* harmony export */   toolsConfigManager: () => (/* reexport safe */ _config__WEBPACK_IMPORTED_MODULE_1__.toolsConfigManager)
 /* harmony export */ });

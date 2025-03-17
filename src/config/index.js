@@ -24,6 +24,7 @@ const defaultConfig = {
  * @property {ToolsConfig} config
  * @property {function} load
  * @property {function} save
+ * @property {function} remove
  * @property {function} reset
  */
 
@@ -45,6 +46,10 @@ export const toolsConfigManager = {
   save: () => {
     localStorage.setItem(CONFIG_KEY, JSON.stringify(toolsConfigManager.config));
     console.info('已保存当前配置到本地:', toolsConfigManager.config);
+  },
+  remove: () => {
+    localStorage.removeItem(CONFIG_KEY);
+    console.info('已清除本地配置');
   },
   reset: () => {
     toolsConfigManager.config = defaultConfig;

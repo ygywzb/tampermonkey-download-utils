@@ -268,7 +268,6 @@ const getDataByFetch = async (url) => {
  * @returns {Promise<*>} 二进制数据
  */
 const getData = async (url, callback = null) => {
-  debugger;
   const downloadConfig = _config__WEBPACK_IMPORTED_MODULE_0__.toolsConfigManager.config.download;
   let tryNum = downloadConfig.tryNum;
   console.debug(`尝试次数：${tryNum}`);

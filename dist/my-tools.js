@@ -201,8 +201,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../config */ "./src/config/index.js");
 
 
-const downloadConfig = _config__WEBPACK_IMPORTED_MODULE_0__.toolsConfigManager.config.download;
-
 /**
  * GM_XHR成功返回的对象
  * @typedef GMResponse
@@ -263,6 +261,7 @@ const getDataByFetch = async (url) => {
  */
 const getData = async (url, callback = null) => {
   debugger;
+  const downloadConfig = _config__WEBPACK_IMPORTED_MODULE_0__.toolsConfigManager.config.download;
   let tryNum = downloadConfig.tryNum;
   console.debug(`尝试次数：${tryNum}`);
   let res = null;

@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 import { getData } from './download';
 import { saveAs } from 'file-saver';
+import { toolsConfigManager } from '../config';
 
 /**
  * 下载一个文件，并存储在指定的zip中
@@ -37,7 +38,6 @@ const DAZDefaultOptions = {
  * @param {DAZOptions} [options] 其他可选参数
  */
 export const downloadAndZipSync = async (linkList, options = {}) => {
-  debugger;
   const { zipName, gmCallback, extention } = {
     ...DAZDefaultOptions,
     ...options,
@@ -71,6 +71,74 @@ export const downloadAndZipSync = async (linkList, options = {}) => {
       console.info(`下载进度：${successNum}/${allNum}`);
     }
   }
+  console.info(`下载结束, 成功:${successNum}, 共:${allNum}`);
+  console.info('压缩中');
+  const content = await zip.generateAsync({ type: 'blob' });
+  console.info('压缩包生成完成');
+  saveAs(content, ''.concat(zipName, '.', extention));
+  console.info(`文件已保存为: ${zipName}.${extention}`);
+};
+
+/**
+ * 异步方式下载资源并整合至压缩包中
+ * @param {string[]} linkList 下载链接列表
+ * @param {DAZOptions} [options] 其他可选参数
+ */
+export const downloadAndZipAsync = async (linkList, options = {}) => {
+  const { zipName, gmCallback, extention } = {
+    ...DAZDefaultOptions,
+    ...options,
+  };
+  const maxDownload = toolsConfigManager.config.file.maxDownload;
+
+  console.debug('下载链接列表:', linkList);
+  console.debug('压缩包名称:', zipName);
+  console.debug('使用的下载函数:', gmCallback ? 'GMCallback' : 'fetch');
+  console.debug('压缩包拓展名:', extention);
+  console.debug('最大下载数:', maxDownload);
+
+  if (linkList.length <= 0) {
+    console.warn('下载列表为空！');
+    return;
+  }
+  console.info('将以异步方式下载');
+  console.debug('开始创建新的zip对象');
+  const zip = new JSZip();
+
+  const incrementSuccessNum = async () => {
+    successNum++;
+  };
+
+  const allNum = linkList.length;
+  let successNum = 0;
+  const downloadQueue = [];
+  for (const url of linkList) {
+    const downloadTask = async () => {
+      try {
+        await getDataAndAdd(url, zip, gmCallback);
+        await incrementSuccessNum();
+      } catch (error) {
+        console.error(`下载失败: ${url}`, error);
+      } finally {
+        console.info(`下载进度：${successNum}/${allNum}`);
+      }
+    };
+
+    downloadQueue.push(downloadTask);
+
+    if (downloadQueue.length >= maxDownload) {
+      console.debug('下载队列开始，异步下载个数:', downloadQueue.length);
+      await Promise.all(downloadQueue.map((task) => task()));
+      downloadQueue.length = 0; // 清空队列
+    }
+  }
+
+  // 处理剩余的下载任务
+  if (downloadQueue.length > 0) {
+    console.debug('下载队列开始，异步下载个数:', downloadQueue.length);
+    await Promise.all(downloadQueue.map((task) => task()));
+  }
+
   console.info(`下载结束, 成功:${successNum}, 共:${allNum}`);
   console.info('压缩中');
   const content = await zip.generateAsync({ type: 'blob' });

@@ -19,10 +19,18 @@ const getDataAndAdd = async (url, zip, gmCallback = null) => {
 };
 
 /**
+ * @callback PCallback
+ * @param {number} successNum
+ * @param {number} allNum
+ * @returns {void}
+ */
+
+/**
  * @typedef {Object} DAZOptions
  * @property {string} zipName - 压缩包名称
  * @property {import("./download").GMCallback} gmCallback - 油猴下载函数，无则使用原生的fetch
  * @property {string} extention - 压缩包拓展名
+ * @property {PCallback} progressCallback - 下载进度回调
  */
 
 /** @type {DAZOptions}*/
@@ -30,6 +38,9 @@ const DAZDefaultOptions = {
   zipName: 'archive',
   gmCallback: null,
   extention: 'zip',
+  progressCallback: (success, all) => {
+    console.info(`下载进度：${success}/${all}`);
+  },
 };
 
 /**
@@ -38,7 +49,7 @@ const DAZDefaultOptions = {
  * @param {DAZOptions} [options] 其他可选参数
  */
 export const downloadAndZipSync = async (linkList, options = {}) => {
-  const { zipName, gmCallback, extention } = {
+  const { zipName, gmCallback, extention, progressCallback } = {
     ...DAZDefaultOptions,
     ...options,
   };
@@ -68,7 +79,7 @@ export const downloadAndZipSync = async (linkList, options = {}) => {
     } catch (e) {
       console.warn(`下载或添加文件失败: ${url}`, e);
     } finally {
-      console.info(`下载进度：${successNum}/${allNum}`);
+      progressCallback(successNum, allNum);
     }
   }
   console.info(`下载结束, 成功:${successNum}, 共:${allNum}`);

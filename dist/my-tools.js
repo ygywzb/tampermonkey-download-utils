@@ -3085,13 +3085,13 @@ __webpack_require__.r(__webpack_exports__);
  * @type {ProgressBar.PathDrawingOptions}
  */
 const defaultBarOptions = {
-  strokeWidth: 4,
+  strokeWidth: 1,
   easing: 'easeInOut',
   duration: 1400,
   color: '#3498db', // 蓝色
   trailColor: '#eee',
   trailWidth: 1,
-  svgStyle: { width: '100%', height: '100%' },
+  svgStyle: null,
   from: { color: '#3498db' }, // 蓝色
   to: { color: '#2ecc71' }, // 绿色
   step: (state, bar) => {
@@ -3105,11 +3105,18 @@ const defaultBarOptions = {
  * @param {ProgressBar.PathDrawingOptions} [options] options
  * @returns {import('../utils/file').PCallback}
  */
-const PBCallbackGen = (element, options = {}) => {
-  const bar = new (progressbar_js__WEBPACK_IMPORTED_MODULE_0___default().Line)(element, {
+const PBCallbackGen = (element, options = {}, position = 'last') => {
+  const bar = new (progressbar_js__WEBPACK_IMPORTED_MODULE_0___default().Line)(document.createElement('div'), {
     ...defaultBarOptions,
     ...options,
   });
+
+  if (position === 'first') {
+    element.insertBefore(bar.svg, element.firstChild);
+  } else {
+    element.appendChild(bar.svg);
+  }
+
   return (success, all) => {
     if (success > all) {
       throw new Error(`进度数据不合法，成功数：${success}，总数：${all}`);

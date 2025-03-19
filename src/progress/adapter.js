@@ -10,11 +10,27 @@ const defaultBarOptions = {
   color: '#3498db', // 蓝色
   trailColor: '#eee',
   trailWidth: 1,
-  svgStyle: null,
+  svgStyle: { width: '100%', height: '100%' },
+  text: {
+    style: {
+      color: 'white',
+      position: 'absolute',
+      right: '0',
+      top: '0',
+      padding: 0,
+      margin: 0,
+    },
+    autoStyleContainer: false,
+  },
   from: { color: '#3498db' }, // 蓝色
   to: { color: '#2ecc71' }, // 绿色
   step: (state, bar) => {
-    bar.path.setAttribute('stroke', state.color);
+    const percent = Math.round(bar.value() * 100);
+    bar.setText(percent <= 10 ? '' : percent + ' %');
+    bar.text.style.left = percent / 2 + '%';
+    if (bar.value() >= 0.8) {
+      bar.path.setAttribute('stroke', state.color);
+    }
   },
 };
 
@@ -27,6 +43,7 @@ const defaultBarOptions = {
 const PBCallbackGen = (element, options = {}, position = 'last') => {
   debugger;
   const divEle = document.createElement('div');
+  divEle.style.position = 'relative';
   const bar = new ProgressBar.Line(divEle, {
     ...defaultBarOptions,
     ...options,

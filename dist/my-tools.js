@@ -3106,15 +3106,17 @@ const defaultBarOptions = {
  * @returns {import('../utils/file').PCallback}
  */
 const PBCallbackGen = (element, options = {}, position = 'last') => {
-  const bar = new (progressbar_js__WEBPACK_IMPORTED_MODULE_0___default().Line)(document.createElement('div'), {
+  debugger;
+  const divEle = document.createElement('div');
+  const bar = new (progressbar_js__WEBPACK_IMPORTED_MODULE_0___default().Line)(divEle, {
     ...defaultBarOptions,
     ...options,
   });
 
   if (position === 'first') {
-    element.insertBefore(bar.svg, element.firstChild);
+    element.insertBefore(divEle, element.firstChild);
   } else {
-    element.appendChild(bar.svg);
+    element.appendChild(divEle);
   }
 
   return (success, all) => {

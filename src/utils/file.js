@@ -96,7 +96,7 @@ export const downloadAndZipSync = async (linkList, options = {}) => {
  * @param {DAZOptions} [options] 其他可选参数
  */
 export const downloadAndZipAsync = async (linkList, options = {}) => {
-  const { zipName, gmCallback, extention } = {
+  const { zipName, gmCallback, extention, progressCallback } = {
     ...DAZDefaultOptions,
     ...options,
   };
@@ -131,7 +131,7 @@ export const downloadAndZipAsync = async (linkList, options = {}) => {
       } catch (error) {
         console.error(`下载失败: ${url}`, error);
       } finally {
-        console.info(`下载进度：${successNum}/${allNum}`);
+        progressCallback(successNum, allNum);
       }
     };
 

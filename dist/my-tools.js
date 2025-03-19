@@ -3100,6 +3100,11 @@ const defaultBarOptions = {
       top: '0',
       padding: 0,
       margin: 0,
+      transform: {
+        prefix: true, // 自动加浏览器前缀
+        value: 'translate(-50%, 0%)',
+      },
+      transition: 'left 0.25s ease-out',
     },
     autoStyleContainer: false,
   },
@@ -3107,11 +3112,9 @@ const defaultBarOptions = {
   to: { color: '#2ecc71' }, // 绿色
   step: (state, bar) => {
     const percent = Math.round(bar.value() * 100);
-    bar.setText(percent <= 10 ? '' : percent + ' %');
+    bar.setText(percent <= 5 ? '' : percent + ' %');
     bar.text.style.left = percent / 2 + '%';
-    if (bar.value() >= 0.8) {
-      bar.path.setAttribute('stroke', state.color);
-    }
+    bar.path.setAttribute('stroke', state.color);
   },
 };
 
@@ -3122,7 +3125,6 @@ const defaultBarOptions = {
  * @returns {import('../utils/file').PCallback}
  */
 const PBCallbackGen = (element, options = {}, position = 'last') => {
-  debugger;
   const divEle = document.createElement('div');
   divEle.style.position = 'relative';
   const bar = new (progressbar_js__WEBPACK_IMPORTED_MODULE_0___default().Line)(divEle, {

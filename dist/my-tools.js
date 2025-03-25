@@ -3326,7 +3326,7 @@ const sendOneTask = async (fileInfo, options = {}) => {
     method: 'aria2.addUri',
     id: 'qwer',
     params: [
-      [url],
+      [realUrl],
       {
         out: filename, // 文件名
         ...rpcOpts,

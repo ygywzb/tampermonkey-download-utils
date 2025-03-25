@@ -3174,6 +3174,237 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./src/rpc/index.js":
+/*!**************************!*\
+  !*** ./src/rpc/index.js ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _task__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./task */ "./src/rpc/task.js");
+/* harmony import */ var _status__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./status */ "./src/rpc/status.js");
+
+
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({ ..._task__WEBPACK_IMPORTED_MODULE_0__["default"], ..._status__WEBPACK_IMPORTED_MODULE_1__["default"] });
+
+
+/***/ }),
+
+/***/ "./src/rpc/status.js":
+/*!***************************!*\
+  !*** ./src/rpc/status.js ***!
+  \***************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/**
+ * 根据任务唯一ID，获取该任务下载进度
+ * @param {string} gid 任务唯一ID
+ * @returns {Object} 进度详情对象
+ */
+const getAria2Status = async (gid) => {
+  const rpcUrl = 'http://localhost:6800/jsonrpc';
+
+  const requestData = {
+    jsonrpc: '2.0',
+    method: 'aria2.tellStatus',
+    id: 'qwer',
+    params: [gid], // gid 是任务的唯一 ID
+  };
+
+  try {
+    const response = await fetch(rpcUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestData),
+    });
+    const result = await response.json().result;
+    console.info('任务状态:', result);
+    return result;
+  } catch (error) {
+    console.error('请求失败:', error);
+  }
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({ getAria2Status });
+
+
+/***/ }),
+
+/***/ "./src/rpc/task.js":
+/*!*************************!*\
+  !*** ./src/rpc/task.js ***!
+  \*************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/**
+ * 将一个下载任务推送至aria2 RPC
+ * @param {string} url 下载链接
+ * @param {string} filename 文件名
+ * @returns { string } GID
+ */
+const addAria2Task = async (url, filename) => {
+  const rpcUrl = 'http://localhost:6800/jsonrpc'; // Aria2 RPC 地址
+
+  const requestData = {
+    jsonrpc: '2.0',
+    method: 'aria2.addUri',
+    id: 'qwer',
+    params: [
+      [url],
+      {
+        out: filename, // 文件名
+      },
+    ],
+  };
+
+  try {
+    const response = await fetch(rpcUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestData),
+    });
+
+    const result = await response.json();
+    if (result.result) {
+      const gid = result.result; // 获取任务 GID
+      console.info('下载任务添加成功，GID:', gid);
+      return gid;
+    } else {
+      console.warn('下载任务添加失败:', result);
+      return null;
+    }
+  } catch (error) {
+    console.error('请求失败:', error);
+    return null;
+  }
+};
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+  addAria2Task,
+});
+
+
+/***/ }),
+
+/***/ "./src/storage/constants.js":
+/*!**********************************!*\
+  !*** ./src/storage/constants.js ***!
+  \**********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DOWNLOADED_KEY: () => (/* binding */ DOWNLOADED_KEY),
+/* harmony export */   SELECTED_KEY: () => (/* binding */ SELECTED_KEY)
+/* harmony export */ });
+const DOWNLOADED_KEY = 'anaaya-downloaded';
+const SELECTED_KEY = 'anaaya-selected';
+
+
+/***/ }),
+
+/***/ "./src/storage/index.js":
+/*!******************************!*\
+  !*** ./src/storage/index.js ***!
+  \******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./src/storage/constants.js");
+
+
+const LS = localStorage;
+// 持久化存储已经下载的id
+const LSDownloadedManager = {
+  /**
+   * 添加id至已下载列表并保存
+   * @param {number} id
+   */
+  add(id) {
+    const dListStr = LS.getItem(_constants__WEBPACK_IMPORTED_MODULE_0__.DOWNLOADED_KEY);
+    const dList = !dListStr ? [] : JSON.parse(dListStr);
+    dList.push(id);
+    LS.setItem(_constants__WEBPACK_IMPORTED_MODULE_0__.DOWNLOADED_KEY, JSON.stringify(dList));
+  },
+  getSearcher() {
+    const dListStr = LS.getItem(_constants__WEBPACK_IMPORTED_MODULE_0__.DOWNLOADED_KEY);
+    const dl = JSON.parse(dListStr);
+    if (!dListStr || sl.length === 0) {
+      return null;
+    }
+    const idSet = new Set(dl);
+    return (id) => idSet.has(id);
+  },
+};
+
+/**
+ * 待下载视频详情
+ * @typedef {Object} SelectedVideoInfo
+ * @property {number} videoId 视频ID，不同清晰度ID相同
+ * @property {string} videoTitle 视频标题
+ * @property {string} videoUrl 视频下载链接
+ * @property {string} videoRes 视频清晰度
+ */
+
+// 持久化存储已经选中、待下载的信息
+const LSSelectedManager = {
+  /**
+   * 添加视频信息至待下载列表
+   * @param {SelectedVideoInfo} info 视频信息
+   */
+  add(info) {
+    const dList = this.getList();
+    dList.push(info);
+    LS.setItem(_constants__WEBPACK_IMPORTED_MODULE_0__.SELECTED_KEY, JSON.stringify(dList));
+  },
+  /**
+   * 清空列表
+   */
+  clear() {
+    LS.removeItem(_constants__WEBPACK_IMPORTED_MODULE_0__.SELECTED_KEY);
+  },
+  /**
+   * 获取待下载列表
+   * @returns {SelectedVideoInfo[]} 待下载列表
+   */
+  getList() {
+    const dListStr = LS.getItem(_constants__WEBPACK_IMPORTED_MODULE_0__.SELECTED_KEY);
+    return !dListStr ? [] : JSON.parse(dListStr);
+  },
+  getSearcher() {
+    const dListStr = LS.getItem(_constants__WEBPACK_IMPORTED_MODULE_0__.SELECTED_KEY);
+    const sl = JSON.parse(dListStr);
+    if (!dListStr || sl.length === 0) {
+      return null;
+    }
+    const idSet = new Set(sl.map((info) => info.videoId));
+    return (id) => idSet.has(id);
+  },
+};
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({ LSDownloadedManager, LSSelectedManager });
+
+
+/***/ }),
+
 /***/ "./src/utils/download.js":
 /*!*******************************!*\
   !*** ./src/utils/download.js ***!
@@ -3565,11 +3796,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   adapters: () => (/* reexport safe */ _progress__WEBPACK_IMPORTED_MODULE_2__.adapters),
 /* harmony export */   downloadAndZipAsync: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_0__.downloadAndZipAsync),
 /* harmony export */   downloadAndZipSync: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_0__.downloadAndZipSync),
+/* harmony export */   rpc: () => (/* reexport safe */ _rpc__WEBPACK_IMPORTED_MODULE_4__["default"]),
+/* harmony export */   storage: () => (/* reexport safe */ _storage__WEBPACK_IMPORTED_MODULE_3__["default"]),
 /* harmony export */   toolsConfigManager: () => (/* reexport safe */ _config__WEBPACK_IMPORTED_MODULE_1__.toolsConfigManager)
 /* harmony export */ });
 /* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/utils/index.js");
 /* harmony import */ var _config__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./config */ "./src/config/index.js");
 /* harmony import */ var _progress__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./progress */ "./src/progress/index.js");
+/* harmony import */ var _storage__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./storage */ "./src/storage/index.js");
+/* harmony import */ var _rpc__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./rpc */ "./src/rpc/index.js");
+
+
 
 
 

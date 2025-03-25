@@ -67,6 +67,18 @@ const PBCallbackGen = (element, options = {}, position = 'last') => {
   };
 };
 
+/**
+ * 默认进度输出，控制台
+ * @param {string} msg
+ * @returns {import('../utils/file').PCallback}
+ */
+const defaultCallbackGen = (msg = '下载进度：') => {
+  return (success, all) => {
+    console.info(`${msg}${success}/${all}`);
+  };
+};
+
 export const adapters = {
   PBCallbackGen,
+  defaultCallbackGen,
 };

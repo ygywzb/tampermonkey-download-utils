@@ -1,9 +1,9 @@
 /**
  * 根据任务唯一ID，获取该任务下载进度
  * @param {string} gid 任务唯一ID
- * @returns {Object} 进度详情对象
+ * @returns {Promise<Object>} 进度详情对象
  */
-const getAria2Status = async (gid) => {
+const getOneStatus = async (gid) => {
   const rpcUrl = 'http://localhost:6800/jsonrpc';
 
   const requestData = {
@@ -13,17 +13,29 @@ const getAria2Status = async (gid) => {
     params: [gid], // gid 是任务的唯一 ID
   };
 
-  try {
-    const response = await fetch(rpcUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestData),
-    });
-    const result = await response.json().result;
-    console.info('任务状态:', result);
-    return result;
-  } catch (error) {
-    console.error('请求失败:', error);
-  }
+  const response = await fetch(rpcUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestData),
+  });
+  const result = await response.json().result;
+  console.info('任务状态:', result);
+  return result;
 };
-export default { getAria2Status };
+
+/**
+ * 根据GID列表获取所有任务的进度情况
+ * @param {string[]} gIdList
+ */
+export const getAllStatus = async (gIdList) => {
+  const res = [];
+  for (const gId of gIdList) {
+    try {
+      const status = await getOneStatus(gId);
+      res.push(status);
+    } catch (e) {
+      console.warn(`进度查询失败，${e}`);
+    }
+  }
+  return res;
+};

@@ -1,4 +1,4 @@
-import task from './task';
-import status from './status';
+import { getAllStatus } from './status';
+import { sendAllTasks } from './task';
 
-export default { ...task, ...status };
+export default { getAllStatus, sendAllTasks };

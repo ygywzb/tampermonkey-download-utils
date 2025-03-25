@@ -3148,8 +3148,20 @@ const PBCallbackGen = (element, options = {}, position = 'last') => {
   };
 };
 
+/**
+ * 默认进度输出，控制台
+ * @param {string} msg
+ * @returns {import('../utils/file').PCallback}
+ */
+const defaultCallbackGen = (msg = '下载进度：') => {
+  return (success, all) => {
+    console.info(`${msg}${success}/${all}`);
+  };
+};
+
 const adapters = {
   PBCallbackGen,
+  defaultCallbackGen,
 };
 
 
@@ -3185,12 +3197,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-/* harmony import */ var _task__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./task */ "./src/rpc/task.js");
-/* harmony import */ var _status__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./status */ "./src/rpc/status.js");
+/* harmony import */ var _status__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./status */ "./src/rpc/status.js");
+/* harmony import */ var _task__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./task */ "./src/rpc/task.js");
 
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({ ..._task__WEBPACK_IMPORTED_MODULE_0__["default"], ..._status__WEBPACK_IMPORTED_MODULE_1__["default"] });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({ getAllStatus: _status__WEBPACK_IMPORTED_MODULE_0__.getAllStatus, sendAllTasks: _task__WEBPACK_IMPORTED_MODULE_1__.sendAllTasks });
 
 
 /***/ }),
@@ -3204,14 +3216,14 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */   getAllStatus: () => (/* binding */ getAllStatus)
 /* harmony export */ });
 /**
  * 根据任务唯一ID，获取该任务下载进度
  * @param {string} gid 任务唯一ID
- * @returns {Object} 进度详情对象
+ * @returns {Promise<Object>} 进度详情对象
  */
-const getAria2Status = async (gid) => {
+const getOneStatus = async (gid) => {
   const rpcUrl = 'http://localhost:6800/jsonrpc';
 
   const requestData = {
@@ -3221,20 +3233,32 @@ const getAria2Status = async (gid) => {
     params: [gid], // gid 是任务的唯一 ID
   };
 
-  try {
-    const response = await fetch(rpcUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestData),
-    });
-    const result = await response.json().result;
-    console.info('任务状态:', result);
-    return result;
-  } catch (error) {
-    console.error('请求失败:', error);
-  }
+  const response = await fetch(rpcUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestData),
+  });
+  const result = await response.json().result;
+  console.info('任务状态:', result);
+  return result;
 };
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({ getAria2Status });
+
+/**
+ * 根据GID列表获取所有任务的进度情况
+ * @param {string[]} gIdList
+ */
+const getAllStatus = async (gIdList) => {
+  const res = [];
+  for (const gId of gIdList) {
+    try {
+      const status = await getOneStatus(gId);
+      res.push(status);
+    } catch (e) {
+      console.warn(`进度查询失败，${e}`);
+    }
+  }
+  return res;
+};
 
 
 /***/ }),
@@ -3248,15 +3272,21 @@ const getAria2Status = async (gid) => {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */   sendAllTasks: () => (/* binding */ sendAllTasks)
 /* harmony export */ });
 /**
- * 将一个下载任务推送至aria2 RPC
- * @param {string} url 下载链接
- * @param {string} filename 文件名
- * @returns { string } GID
+ * @typedef {Object} FileInfo
+ * @property {string} url 下载链接
+ * @property {string} file 文件名
  */
-const addAria2Task = async (url, filename) => {
+
+/**
+ * 将一个下载任务推送至aria2 RPC
+ * @param {FileInfo} fileInfo 下载文件详情
+ * @returns { Promise<string> } GID
+ */
+const sendOneTask = async (fileInfo) => {
+  const { url, filename } = fileInfo;
   const rpcUrl = 'http://localhost:6800/jsonrpc'; // Aria2 RPC 地址
 
   const requestData = {
@@ -3270,32 +3300,40 @@ const addAria2Task = async (url, filename) => {
       },
     ],
   };
+  const response = await fetch(rpcUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(requestData),
+  });
 
-  try {
-    const response = await fetch(rpcUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestData),
-    });
-
-    const result = await response.json();
-    if (result.result) {
-      const gid = result.result; // 获取任务 GID
-      console.info('下载任务添加成功，GID:', gid);
-      return gid;
-    } else {
-      console.warn('下载任务添加失败:', result);
-      return null;
-    }
-  } catch (error) {
-    console.error('请求失败:', error);
-    return null;
+  const result = await response.json();
+  if (!result.result) {
+    throw new Error(`RPC服务存在，但下载任务添加失败：${result}`);
   }
+  const gid = result.result; // 获取任务 GID
+  console.info('下载任务添加成功，GID:', gid);
+  return gid;
 };
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
-  addAria2Task,
-});
+/**
+ * 通过RPC发送一系列下载任务，并获取所有GID
+ * @param {FileInfo[]} infos 下载文件信息列表
+ * @returns {Promise<string[]>}
+ */
+const sendAllTasks = async (infos) => {
+  // 收集所有gid
+  const gIdList = [];
+  for (const info of infos) {
+    try {
+      const gid = await sendOneTask(info);
+      gIdList.push(gid);
+    } catch (e) {
+      console.warn(`任务发送失败，${e}`);
+      continue;
+    }
+  }
+  return gIdList;
+};
 
 
 /***/ }),

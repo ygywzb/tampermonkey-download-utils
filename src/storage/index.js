@@ -38,11 +38,13 @@ const LSSelectedManager = {
   /**
    * 添加视频信息至待下载列表
    * @param {SelectedVideoInfo} info 视频信息
+   * @returns {number} 返回当前任务个数
    */
   add(info) {
     const dList = this.getList();
     dList.push(info);
     LS.setItem(SELECTED_KEY, JSON.stringify(dList));
+    return dList.length;
   },
   /**
    * 清空列表

@@ -60,11 +60,21 @@ const LSSelectedManager = {
     const dListStr = LS.getItem(SELECTED_KEY);
     return !dListStr ? [] : JSON.parse(dListStr);
   },
+  /**
+   * 查询特定id是否存在
+   * @callback SearchFunc
+   * @param {number} id
+   * @returns {boolean} 存在为true
+   */
+  /**
+   * 内部维护一个id集合，获取查询函数
+   * @returns {SearchFunc} 返回查询函数，若列表为空，一定返回false
+   */
   getSearcher() {
     const dListStr = LS.getItem(SELECTED_KEY);
     const sl = JSON.parse(dListStr);
     if (!dListStr || sl.length === 0) {
-      return null;
+      return () => false;
     }
     const idSet = new Set(sl.map((info) => info.videoId));
     return (id) => idSet.has(id);

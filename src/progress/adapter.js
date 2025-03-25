@@ -10,10 +10,29 @@ const defaultBarOptions = {
   color: '#3498db', // 蓝色
   trailColor: '#eee',
   trailWidth: 1,
-  svgStyle: null,
+  svgStyle: { width: '100%', height: '100%' },
+  text: {
+    style: {
+      color: 'white',
+      position: 'absolute',
+      right: '0',
+      top: '0',
+      padding: 0,
+      margin: 0,
+      transform: {
+        prefix: true, // 自动加浏览器前缀
+        value: 'translate(-50%, 0%)',
+      },
+      transition: 'left 0.25s ease-out',
+    },
+    autoStyleContainer: false,
+  },
   from: { color: '#3498db' }, // 蓝色
   to: { color: '#2ecc71' }, // 绿色
   step: (state, bar) => {
+    const percent = Math.round(bar.value() * 100);
+    bar.setText(percent <= 5 ? '' : percent + ' %');
+    bar.text.style.left = percent / 2 + '%';
     bar.path.setAttribute('stroke', state.color);
   },
 };
@@ -25,15 +44,17 @@ const defaultBarOptions = {
  * @returns {import('../utils/file').PCallback}
  */
 const PBCallbackGen = (element, options = {}, position = 'last') => {
-  const bar = new ProgressBar.Line(document.createElement('div'), {
+  const divEle = document.createElement('div');
+  divEle.style.position = 'relative';
+  const bar = new ProgressBar.Line(divEle, {
     ...defaultBarOptions,
     ...options,
   });
 
   if (position === 'first') {
-    element.insertBefore(bar.svg, element.firstChild);
+    element.insertBefore(divEle, element.firstChild);
   } else {
-    element.appendChild(bar.svg);
+    element.appendChild(divEle);
   }
 
   return (success, all) => {

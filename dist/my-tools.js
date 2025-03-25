@@ -3277,7 +3277,7 @@ __webpack_require__.r(__webpack_exports__);
 /**
  * @typedef {Object} FileInfo
  * @property {string} url 下载链接
- * @property {string} file 文件名
+ * @property {string} filename 文件名
  */
 
 /**

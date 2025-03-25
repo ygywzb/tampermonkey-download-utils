@@ -3285,6 +3285,17 @@ __webpack_require__.r(__webpack_exports__);
  * @typedef {Object} RPCSendOption
  */
 
+/**
+ * 默认的RPC发送配置
+ * @type {RPCSendOption}
+ */
+const defaultRPCSendOption = {
+  split: '10', // 分片下载
+  'max-connection-per-server': '5', // 每个服务器的最大连接数
+  'user-agent': 'Mozilla/5.0', // 用户代理
+  'all-proxy': 'http://localhost:7890', // 设置代理
+};
+
 // 注意：以下的下载链接均为最终链接，以下函数只负责传递给RPC，不会处理
 /**
  * 将一个下载任务推送至aria2 RPC
@@ -3304,6 +3315,7 @@ const sendOneTask = async (fileInfo, options = {}) => {
       [url],
       {
         out: filename, // 文件名
+        ...defaultRPCSendOption,
         ...options,
       },
     ],
